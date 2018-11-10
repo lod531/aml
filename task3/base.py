@@ -58,7 +58,7 @@ def clean_nan(arr):
         result.append(clean_current_column)
     return result
 
-def simple_sample_stats(arr):
+def simple_sample_heartbeat_stats(arr):
     stats = biosppy.signals.ecg.ecg(arr, sampling_rate=SAMPLING_RATE, show=False)
     heart_rate_by_second = stats['heart_rate']
     avg_heart_rate = np.mean(heart_rate_by_second)
@@ -66,7 +66,7 @@ def simple_sample_stats(arr):
     heart_rate_std = np.std(heart_rate_by_second)
     return avg_heart_rate, median_heart_rate, heart_rate_std
 
-def simple_dataset_stats(arr, labels):
+def simple_dataset_heartbeat_stats(arr, labels):
     #Arr must be clean, i.e. must not contain NaN values.
     #use clean_nan to clean a dataset
     #I would like simple sample stats for each sample, grouped by 
@@ -80,7 +80,7 @@ def simple_dataset_stats(arr, labels):
         results[unique_labels[i]] = {'means':[], 'medians':[], 'std_devs':[]}
     for i in range(0, len(arr)):
         label = labels[i]
-        mean, median, std = simple_sample_stats(arr[i])
+        mean, median, std = simple_sample_heartbeat_stats(arr[i])
         if np.isnan(mean) or np.isnan(median) or np.isnan(std):
             print('NaN detected! Row id: ', i)
         results[label]['means'].append(mean)
@@ -105,6 +105,102 @@ def meta_dataset_stats(dict):
         print('Standard deviation of medians', dev_of_medians)
         print('Standard deviation of std_devs', dev_of_std_devs)
 
+def mean_median_dev_rpeak_qnadir_for_sample(arr):
+    #assumes arr is a raw ecg signal to be filtered. 
+    #This code could be very easily extended to make that optional
+    order = int(0.3 * SAMPLING_RATE)
+    data_point = X_train_data_clean[0]
+    filtered, _, _ = biosppy.tools.filter_signal(signal=arr,
+                                      ftype='FIR',
+                                      band='bandpass',
+                                      order=order,
+                                      frequency=[3, 45],
+                                      sampling_rate=SAMPLING_RATE)
+    heart_beat_indexes = biosppy.signals.ecg.christov_segmenter(signal = filtered, sampling_rate = SAMPLING_RATE)['rpeaks']
+    r_peaks = [filtered[i] for i in heart_beat_indexes]
+    q_nadirs = []
+    # So here's how this one's calculated - Q nadirs are usually way, way lower than anything else between peaks
+    # So simply look for the min in between peaks.
+    # For samples until the last peak. +1 to include the last peak itself
+    current_min = arr[0]
+    for i in range(0, heart_beat_indexes[-1]+1):
+        if arr[i] < current_min:
+            current_min = arr[i]
+        if i in heart_beat_indexes:
+            q_nadirs.append(current_min)
+            current_min = arr[i]
+    result = {}
+    result['rpeaks_mean'] = np.mean(r_peaks)
+    result['rpeaks_median'] = np.median(r_peaks)
+    result['rpeaks_std_dev'] = np.std(r_peaks)
+    result['qnadirs_mean'] = np.mean(q_nadirs)
+    result['qnadirs_median'] = np.median(q_nadirs)
+    result['qnadirs_std_dev'] = np.std(q_nadirs)
+    return result
+  
+    
+def mean_median_dev_rpeak_qnadir_for_dataset(arr, labels):
+    #The nesting of dictionaries here is fucking cancer, You don't have to tell me.
+    r_peak_results = {}
+    q_nadir_results = {}
+    #Initialize results
+    unique_labels = np.unique(labels)
+    for i in range(0, len(unique_labels)):
+        #For each label, I want a dict containing a list for all of my stats
+        r_peak_results[unique_labels[i]] = {'means':[], 'medians':[], 'std_devs':[]}
+        q_nadir_results[unique_labels[i]] = {'means':[], 'medians':[], 'std_devs':[]}
+    for i in range(0, len(arr)):
+        label = labels[i]
+        sample_stats = mean_median_dev_rpeak_qnadir_for_sample(arr[i])
+        r_peak_results[label]['means'].append(sample_stats['rpeaks_mean'])
+        r_peak_results[label]['medians'].append(sample_stats['rpeaks_median'])
+        r_peak_results[label]['std_devs'].append(sample_stats['rpeaks_std_dev'])
+        q_nadir_results[label]['means'].append(sample_stats['qnadirs_mean'])
+        q_nadir_results[label]['medians'].append(sample_stats['qnadirs_median'])
+        q_nadir_results[label]['std_devs'].append(sample_stats['qnadirs_std_dev'])
+    return {'rpeak':r_peak_results, 'qnadir':q_nadir_results}
+
+def meta_dataset_rpeak_qnadir_stats(result):
+    #Pass the result of mean_median_dev_rpeak_qnadir_for_dataset into this bad boy
+    print("Meta dataset stats for rpeak, qnadir")
+    rpeak_results = result['rpeak']
+    qnadir_results = result['qnadir']
+    print(type(rpeak_results))
+    print('R peak:')
+    for label, stats in rpeak_results.items():
+        print('Label' + str(label))
+        mean_of_means = np.mean(stats['means'])
+        mean_of_medians = np.mean(stats['medians'])
+        mean_of_std_devs = np.mean(stats['std_devs'])
+        print('Mean of means', mean_of_means)
+        print('Mean of medians', mean_of_medians)
+        print('Mean of standard deviations', mean_of_std_devs)
+        
+        std_dev_of_means = np.std(stats['means'])
+        std_dev_of_medians = np.std(stats['medians'])
+        std_dev_of_std_devs = np.std(stats['std_devs'])
+        print('Standard deviation of means', std_dev_of_means)
+        print('Standard deviation of medians', std_dev_of_medians)
+        print('Standard deviation of standard deviations', std_dev_of_std_devs)
+    print()
+    print('Q nadir:')
+    for label, stats in qnadir_results.items():
+        print('Label' + str(label))
+        mean_of_means = np.mean(stats['means'])
+        mean_of_medians = np.mean(stats['medians'])
+        mean_of_std_devs = np.mean(stats['std_devs'])
+        print('Mean of means', mean_of_means)
+        print('Mean of medians', mean_of_medians)
+        print('Mean of standard deviations', mean_of_std_devs)
+        
+        std_dev_of_means = np.std(stats['means'])
+        std_dev_of_medians = np.std(stats['medians'])
+        std_dev_of_std_devs = np.std(stats['std_devs'])
+        print('Standard deviation of means', std_dev_of_means)
+        print('Standard deviation of medians', std_dev_of_medians)
+        print('Standard deviation of standard deviations', std_dev_of_std_devs)
+
+
 
 
 #time the script
@@ -128,6 +224,15 @@ X_test_data = dataset_X_test.iloc[:,1:].values
 #Unfortunately, NaN values are present, which won't do for biosppy analysis.
 #So let's get a version going that doesn't feature them.
 X_train_data_clean = clean_nan(X_train_data)
+#4 rows appear to be corrupted or some shit, so.
+#Their ids, relative to the unedited import, are
+#2719, 3178, 4299, 4467, and they all belong to class 2
+#Idk wtf.
+X_train_data_clean = np.delete(arr = X_train_data_clean, obj=[2719, 3178, 4299, 4467], axis=0)
+y_train_data = np.delete(arr = y_train_data, obj=[2719, 3178, 4299, 4467], axis=0)
+
+test = mean_median_dev_rpeak_qnadir_for_dataset(X_train_data_clean[:20], y_train_data[:20])
+meta_dataset_rpeak_qnadir_stats(test)
 
 
 #simple_data_stats(X_train_data, 'train data')
@@ -154,11 +259,11 @@ X_train_data_clean = clean_nan(X_train_data)
 
 #test = simple_dataset_stats(X_train_data_clean, y_train_data)
 #meta_dataset_stats(test)
-troublesome_ids = [2719, 3178, 4299, 4467]
-for idd in troublesome_ids:
-    print('id ' + str(idd), 'label', y_train_data[idd], 'length', len(X_train_data[idd]))
-    biosppy.signals.ecg.ecg(signal = X_train_data[2719], sampling_rate = SAMPLING_RATE, show=True)
-
+#troublesome_ids = [2719, 3178, 4299, 4467]
+#for idd in troublesome_ids:
+#    print('id ' + str(idd), 'label', y_train_data[idd], 'length', len(X_train_data[idd]))
+#    biosppy.signals.ecg.ecg(signal = X_train_data[2719], sampling_rate = SAMPLING_RATE, show=True)
+#
 
 
 # testing set
