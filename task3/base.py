@@ -200,6 +200,27 @@ def meta_dataset_rpeak_qnadir_stats(result):
         print('Standard deviation of medians', std_dev_of_medians)
         print('Standard deviation of standard deviations', std_dev_of_std_devs)
 
+def ecg_features_for_sample(sample):
+    mean_heart_rate, median_heart_rate, heart_rate_std = simple_sample_heartbeat_stats(sample)
+    rpeak_qnadir = mean_median_dev_rpeak_qnadir_for_sample(sample)
+    rpeaks_mean = rpeak_qnadir['rpeaks_mean']
+    rpeaks_median = rpeak_qnadir['rpeaks_median']
+    rpeaks_std_dev = rpeak_qnadir['rpeaks_std_dev']
+    qnadirs_mean = rpeak_qnadir['qnadirs_mean']
+    qnadirs_median = rpeak_qnadir['qnadirs_median'] 
+    qnadirs_std_dev = rpeak_qnadir['qnadirs_std_dev']
+    feature_list = [mean_heart_rate, median_heart_rate, heart_rate_std, 
+                       rpeaks_mean, rpeaks_median, rpeaks_std_dev,
+                       qnadirs_mean, qnadirs_median, qnadirs_std_dev]
+    return np.array(feature_list)
+
+def ecg_features_for_dataset(dataset):
+    result_list = []
+    for i in range(0, len(dataset)):
+        result_list.append(ecg_features_for_sample(dataset[i]))
+    return np.array(result_list)
+    
+
 
 
 
@@ -231,9 +252,8 @@ X_train_data_clean = clean_nan(X_train_data)
 X_train_data_clean = np.delete(arr = X_train_data_clean, obj=[2719, 3178, 4299, 4467], axis=0)
 y_train_data = np.delete(arr = y_train_data, obj=[2719, 3178, 4299, 4467], axis=0)
 
-test = mean_median_dev_rpeak_qnadir_for_dataset(X_train_data_clean[:20], y_train_data[:20])
-meta_dataset_rpeak_qnadir_stats(test)
-
+summarized_dataset = ecg_features_for_dataset(X_train_data_clean[:2])
+pickle.dump(summarized_dataset, open('mean_median_std_dev_heartrate_rpeaks_qnadirs.pickle', 'wb'))
 
 #simple_data_stats(X_train_data, 'train data')
 #simple_data_stats(X_test_data, 'test data')
