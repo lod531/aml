@@ -1,0 +1,60 @@
+R peak:
+Label0
+Mean of means 595.4868328835338
+Mean of medians 593.3411987529696
+Mean of standard deviations 69.11912193946631
+Standard deviation of means 343.8079382580095
+Standard deviation of medians 346.1778167874084
+Standard deviation of standard deviations 91.3750870529773
+Label1
+Mean of means 547.7100213033011
+Mean of medians 545.5598112168396
+Mean of standard deviations 66.37024889638856
+Standard deviation of means 264.1272536914254
+Standard deviation of medians 259.84697161473616
+Standard deviation of standard deviations 73.96208503737272
+Label2
+Mean of means 601.0159491140457
+Mean of medians 599.0166192545367
+Mean of standard deviations 72.33094020420619
+Standard deviation of means 353.7278251816125
+Standard deviation of medians 355.96985488713176
+Standard deviation of standard deviations 83.39103111213369
+Label3
+Mean of means 732.0021727727486
+Mean of medians 691.7161268266466
+Mean of standard deviations 224.74610235145602
+Standard deviation of means 586.8484147599527
+Standard deviation of medians 578.558594049504
+Standard deviation of standard deviations 209.54711282726868
+
+Q nadir:
+Label0
+Mean of means -386.4314793656173
+Mean of medians -361.1310231023102
+Mean of standard deviations 166.91054407418568
+Standard deviation of means 482.94274465386894
+Standard deviation of medians 495.17031506215636
+Standard deviation of standard deviations 226.3671831290212
+Label1
+Mean of means -351.24223838679285
+Mean of medians -332.1884875846501
+Mean of standard deviations 137.25557260233757
+Standard deviation of means 434.31633242131176
+Standard deviation of medians 437.62804514170745
+Standard deviation of standard deviations 159.67529516406424
+Label2
+Mean of means -391.88595043568756
+Mean of medians -368.0292517006803
+Mean of standard deviations 161.7541137244754
+Standard deviation of means 444.9332135102683
+Standard deviation of medians 457.07734518839817
+Standard deviation of standard deviations 216.03189279395946
+Label3
+Mean of means -995.8129108499626
+Mean of medians -881.714705882353
+Mean of standard deviations 558.9049897001178
+Standard deviation of means 1006.1202247273161
+Standard deviation of medians 1037.8509552782482
+Standard deviation of standard deviations 450.7252156054732
+Script executed in: 0:20:55.147816
