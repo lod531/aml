@@ -1,4 +1,5 @@
 import pickle
+from datetime import datetime
 from pprint import pprint
 import numpy as np
 import matplotlib.pyplot as plt
@@ -42,9 +43,18 @@ def clean_nan(arr):
     result = []
     for i in range(0, len(arr)):
         clean_current_column = []
-        for j in range(0, len(arr[i])):
+        no_nans_encountered = True
+        #nans are at the end of entries (I checked), so once a nan has been encountered
+        #the rest of the row can be ignored
+        j = 0
+        while no_nans_encountered and j < len(arr[i]):
             if not np.isnan(arr[i][j]):
                 clean_current_column.append(arr[i][j])
+                if not no_nans_encountered:
+                    print('Well, fuck, there\'s nans after values')
+            else:
+                no_nans_encountered = False
+            j += 1
         result.append(clean_current_column)
     return result
 
@@ -71,6 +81,8 @@ def simple_dataset_stats(arr, labels):
     for i in range(0, len(arr)):
         label = labels[i]
         mean, median, std = simple_sample_stats(arr[i])
+        if np.isnan(mean) or np.isnan(median) or np.isnan(std):
+            print('NaN detected! Row id: ', i)
         results[label]['means'].append(mean)
         results[label]['medians'].append(median)
         results[label]['std_devs'].append(std)
@@ -95,6 +107,8 @@ def meta_dataset_stats(dict):
 
 
 
+#time the script
+script_start_time = datetime.now()
 
 
 
@@ -133,12 +147,17 @@ X_train_data_clean = clean_nan(X_train_data)
 #tsa = np.linspace(0, T, length, endpoint=False)
 ##biosppy.plotting.plot_ecg(raw = test, ts = tsa)
 #testt = biosppy.signals.ecg.ecg(signal = test, sampling_rate = 300, show=False)
-print('LENGTH0', len(X_train_data))
-print('LENGTH1', len(X_train_data_clean))
-print(simple_sample_stats(X_train_data_clean[1]))
-pprint(simple_dataset_stats(X_train_data_clean, y_train_data))
-test = simple_dataset_stats(X_train_data_clean, y_train_data)
-meta_dataset_stats(test)
+#print('LENGTH0', len(X_train_data))
+#print('LENGTH1', len(X_train_data_clean))
+#print(simple_sample_stats(X_train_data_clean[1]))
+#pprint(simple_dataset_stats(X_train_data_clean, y_train_data))
+
+#test = simple_dataset_stats(X_train_data_clean, y_train_data)
+#meta_dataset_stats(test)
+troublesome_ids = [2719, 3178, 4299, 4467]
+for idd in troublesome_ids:
+    print('id ' + str(idd), 'label', y_train_data[idd], 'length', len(X_train_data[idd]))
+    biosppy.signals.ecg.ecg(signal = X_train_data[2719], sampling_rate = SAMPLING_RATE, show=True)
 
 
 
@@ -198,3 +217,6 @@ meta_dataset_stats(test)
 #fsol.rename(columns={0: 'id', 1: 'y'}, inplace = True)
 #fsol.to_csv('sol.csv', encoding = 'utf-8', index = False)
 ##print(cv_score)
+
+
+print('Script executed in:', datetime.now()-script_start_time)
