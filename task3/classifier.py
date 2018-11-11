@@ -36,13 +36,13 @@ parameters = {
     #"loss":["deviance"],
     "learning_rate": [0.01],
     "min_samples_split": [20],
-    'min_samples_split': range(2,21),
+    'min_samples_split': [19],
     "min_samples_leaf": [2],
     "max_depth": [8, 9, 10],
     "max_features": ["log2","sqrt"],
     "criterion": ["friedman_mse"],
     #"subsample":[0.5, 0.618, 0.8, 0.85, 0.9, 0.95, 1.0],
-    "subsample":[0.8],
+    "subsample":np.linspace(0.3, 0.5, 10),
     "n_estimators":[130]
     }
 
