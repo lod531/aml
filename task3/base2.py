@@ -80,6 +80,7 @@ def get_heart_rate(beats=None, sampling_rate=1000., smooth=False, size=3):
     return hr
 
 def simple_sample_heartbeat_stats(arr):
+    order = int(0.3 * SAMPLING_RATE)
     filtered, _, _ = biosppy.tools.filter_signal(signal=arr,
                                   ftype='FIR',
                                   band='bandpass',
@@ -258,7 +259,7 @@ dataset_y_train = pd.read_csv('y_train.csv')
 X_train_data = dataset_X_train.iloc[:,1:].values
 y_train_data = dataset_y_train.iloc[:,1].values
 
-dataset_X_test = pd.read_csv('X_test.csv', nrows = 1)
+dataset_X_test = pd.read_csv('X_test.csv')
 X_test_ids = dataset_X_test.iloc[:,0].values
 X_test_data = dataset_X_test.iloc[:,1:].values
 
@@ -281,5 +282,7 @@ pickle.dump(summarized_training_dataset,
 summarized_testing_dataset = ecg_features_for_dataset(X_test_data_clean)
 pickle.dump(summarized_testing_dataset,
 				open('mean_median_std_dev_heartrate_rpeaks_qnadirs_testing.pickle', 'wb'))
+pickle.dump(y_train_data, open('y_train_data.pickle', 'wb'))
+pickle.dump(X_test_ids, open('X_test_ids.pickle', 'wb'))
 
 print('Script executed in:', datetime.now()-script_start_time) 
