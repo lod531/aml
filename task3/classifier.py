@@ -34,24 +34,26 @@ X_test_data = pickle.load(open('mean_median_std_dev_heartrate_rpeaks_qnadirs_tes
 
 parameters = {
     #"loss":["deviance"],
-    "learning_rate": [0.01, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2],
+    "learning_rate": [0.01],
     "min_samples_split": [20],
+    'min_samples_split': range(2,21),
     "min_samples_leaf": [2],
-    "max_depth": [8],
+    "max_depth": [8, 9, 10],
     "max_features": ["log2","sqrt"],
-    "criterion": ["friedman_mse",  "mae"],
+    "criterion": ["friedman_mse"],
     #"subsample":[0.5, 0.618, 0.8, 0.85, 0.9, 0.95, 1.0],
     "subsample":[0.8],
-    "n_estimators":[60, 70, 80, 90, 100, 110, 120]
+    "n_estimators":[130]
     }
 
 clf = GridSearchCV(GradientBoostingClassifier(), parameters, cv=5, n_jobs=-1, scoring='f1_micro',
                         verbose = 10)
 clf.fit(X_train_data, y_train_data)
-print(clf.best_params_)
 pickle.dump(clf, open('grid_search_results.pickle', 'wb'))
+print(clf.best_params_)
+print(clf.best_score_)
 
-y_test_pred = classifier.predict(X_test_data)
+y_test_pred = clf.predict(X_test_data)
 sol = np.append(arr = X_test_ids.reshape(-1,1), values = y_test_pred.reshape(-1,1), axis = 1)
 fsol = pd.DataFrame(sol)
 fsol.rename(columns={0: 'id', 1: 'y'}, inplace = True)
